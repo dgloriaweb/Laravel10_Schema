@@ -15,7 +15,6 @@ use Illuminate\Auth\Events\Registered;
 
 class ApiAuthController extends Controller
 {
-    //https://www.toptal.com/laravel/passport-tutorial-auth-user-access
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -29,21 +28,9 @@ class ApiAuthController extends Controller
         $request['password'] = Hash::make($request['password']);
         $request['remember_token'] = Str::random(10);
         $user = User::create($request->toArray());
-        // $token = $user->createToken('Laravel Password Grant Client')->accessToken;
-        // $response = [
-        //     'token' => $token,
-        //     'userId' => $user->id
-        // ];
-        // $user = new User;
-
-        // $user->user_id = $user->id;
-
         try {
             $user->save();
             event(new Registered($user));
-            // Mail::to($request->user())->send(new OrderShipped($order));
-            // Mail::to('dgloria.work@gmail.com')->send(new NewUser());
-
         } catch (Exception $e) {
             report($e);
             return false;
@@ -85,21 +72,16 @@ class ApiAuthController extends Controller
     public function verifyEmail($id, $hash)
     {
         $user = User::find($id);
-
         if (!$user) {
             return response()->json(['message' => 'Invalid user'], 404);
         }
-
         if (!hash_equals($hash, sha1($user->getEmailForVerification()))) {
             return response()->json(['message' => 'Invalid verification link'], 401);
         }
-
         if ($user->hasVerifiedEmail()) {
             return redirect('/')->with('message', 'Email already verified');
         }
-
         $user->markEmailAsVerified();
-
         return redirect('/');
     }
 }
